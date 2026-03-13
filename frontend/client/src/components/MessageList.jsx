@@ -3,10 +3,16 @@ import MessageBubble from './MessageBubble'
 
 function MessageList({messages}) {
   return (
+    //render messages in Message Bubbles
     <>
-      {messages.map((msg, idx) => (
-        <MessageBubble key={idx} content={msg.content} role={msg.role} />
-      ))}
+{messages.map((msg, index) => (
+          <MessageBubble
+            key={index}
+            content={msg.content}
+            role={msg.role}
+            isLast={index === messages.length - 1}
+          />
+        ))}
     </>
   )
 }

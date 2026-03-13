@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { SendHorizonal } from "lucide-react";
-import { Hash, ShieldCheck, FlaskConical   } from "lucide-react";
+import { SendHorizonal, Sparkles, Hash, ShieldCheck, FlaskConical, Loader2 } from "lucide-react";
 import ToggleButton from "./ToggleButton";
+import { improvePrompt } from "../services/api";
 
 export default function ChatInput({ onSend, loading }) {
   const [input, setInput] = useState("");
+  const [improving, setImproving] = useState(false);
 
   const [options, setOptions] = useState({
     comments: false,
@@ -14,11 +15,11 @@ export default function ChatInput({ onSend, loading }) {
   });
 
   const toggleOption = (key) => {
-  setOptions((prev) => ({
-    ...prev,
-    [key]: !prev[key],
-  }))
-}
+    setOptions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const textareaRef = useRef(null);
 
@@ -45,6 +46,28 @@ export default function ChatInput({ onSend, loading }) {
     setInput(e.target.value);
     e.target.style.height = "auto";
     e.target.style.height = `${e.target.scrollHeight}px`;
+  };
+
+  const handleImprove = async () => {
+    if (!input.trim() || improving || loading) return;
+
+    setImproving(true);
+    try {
+      const improved = await improvePrompt(input);
+      setInput(improved);
+
+      // Auto-resize textarea to fit improved prompt
+      if (textareaRef.current) {
+        setTimeout(() => {
+          textareaRef.current.style.height = "auto";
+          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }, 0);
+      }
+    } catch (err) {
+      console.error("Failed to improve prompt:", err);
+    } finally {
+      setImproving(false);
+    }
   };
 
   return (
@@ -102,9 +125,8 @@ export default function ChatInput({ onSend, loading }) {
             </ToggleButton>
           </div>
 
-          {/* Input and Send */}
+          {/* Input and Actions */}
           <div className="flex items-end w-full">
-
             <textarea
               ref={textareaRef}
               rows={1}
@@ -113,17 +135,50 @@ export default function ChatInput({ onSend, loading }) {
               onKeyDown={handleKeyDown}
               placeholder="Ask anything..."
               className="
-              flex-1
-              resize-none
-              bg-transparent
-              text-zinc-100
-              placeholder-zinc-500
-              focus:outline-none
-              max-h-40
-              pr-3
+                flex-1
+                resize-none
+                bg-transparent
+                text-zinc-100
+                placeholder-zinc-500
+                focus:outline-none
+                max-h-40
+                pr-3
               "
-              />
+            />
 
+            {/* Improve Prompt Button */}
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.9 }}
+              onClick={handleImprove}
+              disabled={!input.trim() || improving || loading}
+              title="Improve prompt"
+              className={`
+                flex items-center justify-center
+                h-10 w-10
+                rounded-xl
+                mr-2
+                transition-all
+                ${
+                  input.trim() && !improving && !loading
+                    ? "bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30"
+                    : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                }
+              `}
+            >
+              {improving ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                >
+                  <Loader2 size={18} />
+                </motion.div>
+              ) : (
+                <Sparkles size={18} />
+              )}
+            </motion.button>
+
+            {/* Send Button */}
             <motion.button
               type="submit"
               whileTap={{ scale: 0.9 }}
@@ -135,14 +190,14 @@ export default function ChatInput({ onSend, loading }) {
                 transition-all
                 ${
                   input.trim() && !loading
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
                 }
-                `}
-                >
+              `}
+            >
               <SendHorizonal size={18} />
             </motion.button>
-            </div>
+          </div>
         </div>
       </div>
     </form>

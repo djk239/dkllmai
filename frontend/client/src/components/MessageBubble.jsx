@@ -6,7 +6,8 @@ import DOMPurify from "dompurify";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { motion } from "framer-motion";
-import { User, Bot } from "lucide-react";
+import { User, Bot, RotateCcw  } from "lucide-react";
+import { useChat } from "../context";
 
 
 /* ======================================
@@ -141,11 +142,12 @@ const Avatar = ({ isUser }) => {
    Message Bubble function (full component)
 ====================================== */
 
-export default function MessageBubble({ content, role }) {
+export default function MessageBubble({ content, role, isLast }) {
+  const { retryLastMessage } = useChat();
   const isUser = role === "user";
 
   const bubble =
-    "relative max-w-[75%] px-5 py-3.5 rounded-2xl backdrop-blur-md border text-sm leading-relaxed";
+    "px-5 py-3.5 rounded-2xl backdrop-blur-md border text-sm leading-relaxed";
 
   const variant = isUser
     ? "bg-red-500/[0.12] border-red-500/[0.15] text-neutral-200 rounded-br-md"
@@ -162,8 +164,20 @@ export default function MessageBubble({ content, role }) {
     >
       <Avatar isUser={isUser} />
 
-      <div className={`${bubble} ${variant}`}>
-        {content ? <Markdown content={content} /> : <LoadingDots />}
+      <div className="relative max-w-[75%]">
+        <div className={`${bubble} ${variant}`}>
+          {content ? <Markdown content={content} /> : <LoadingDots />}
+        </div>
+
+        {!isUser && isLast && (
+          <button
+            onClick={retryLastMessage}
+            className="absolute -bottom-5 left-2 text-xs text-neutral-500 hover:text-white transition-colors flex items-center gap-1"
+          >
+            <RotateCcw size={14} />
+            retry
+          </button>
+        )}
       </div>
     </motion.div>
   );

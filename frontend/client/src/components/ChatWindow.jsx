@@ -121,7 +121,7 @@ function ChatWindow({ messages, onSend }) {
       </div>
 
       {/* Message area */}
-      <div className="relative z-10 flex-1 overflow-y-auto">
+      <div className="relative z-10 flex-1 overflow-y-auto pb-40 pt-8">
         <MessageList messages={messages} />
       </div>
 

@@ -6,8 +6,9 @@ export default function Layout() {
     <>
       <ScrollRestoration />
       <Navbar />
-      <main className="">
-        <div className="">
+
+      <main className="pt-16">
+        <div>
           <Outlet />
         </div>
       </main>
