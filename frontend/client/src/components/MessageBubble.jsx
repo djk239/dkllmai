@@ -7,7 +7,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { motion } from "framer-motion";
 import { User, Bot, RotateCcw  } from "lucide-react";
-import { useChat } from "../context";
+import { useChat } from "../context/Context";
 
 
 /* ======================================
@@ -139,7 +139,7 @@ const Avatar = ({ isUser }) => {
 };
 
 /* ======================================
-   Message Bubble function (full component)
+   Message Bubble function 
 ====================================== */
 
 export default function MessageBubble({ content, role, isLast }) {

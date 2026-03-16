@@ -1,4 +1,4 @@
-import { useChat } from "./context";
+import { useChat } from "./context/Context";
 import ChatWindow from "./components/ChatWindow";
 
 function App() {

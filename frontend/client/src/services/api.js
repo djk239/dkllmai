@@ -6,18 +6,17 @@
 export async function sendMessage(
   message,
   options,
-  userId,
   conversationId,
   onChunk = () => {}
 ) {
   try {
     const response = await fetch("http://localhost:5000/api/ai/chat", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        userId,
         message,
         conversationId,
         options,
@@ -50,15 +49,22 @@ export async function sendMessage(
 /* =========================
    IMPROVE PROMPT
 ========================= */
-export async function improvePrompt(prompt) {
+export async function improvePrompt(prompt, model) {
   try {
-    const response = await fetch("http://localhost:5000/api/ai/improve-prompt", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ prompt }),
-    });
+    const response = await fetch(
+      "http://localhost:5000/api/ai/improve-prompt",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          prompt,
+          model, 
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Failed to improve prompt");
@@ -68,7 +74,7 @@ export async function improvePrompt(prompt) {
     return data.improved;
   } catch (err) {
     console.error("Error improving prompt:", err);
-    return prompt; // Fall back to the original prompt if improvement fails
+    return prompt;
   }
 }
 
@@ -77,7 +83,10 @@ export async function improvePrompt(prompt) {
 ========================= */
 export async function fetchConversationMessages(conversationId) {
   const res = await fetch(
-    `http://localhost:5000/api/ai/conversations/${conversationId}/messages`
+    `http://localhost:5000/api/ai/conversations/${conversationId}/messages`,
+    {
+      credentials: "include",
+    }
   );
 
   if (!res.ok) {
@@ -92,7 +101,10 @@ export async function fetchConversationMessages(conversationId) {
 ========================= */
 export async function fetchConversations(page = 1) {
   const res = await fetch(
-    `http://localhost:5000/api/ai/conversations/1?page=${page}&limit=10`
+    `http://localhost:5000/api/ai/conversations?page=${page}&limit=10`,
+    {
+      credentials: "include",
+    }
   );
 
   if (!res.ok) {
@@ -100,4 +112,58 @@ export async function fetchConversations(page = 1) {
   }
 
   return res.json();
+}
+
+/* =========================
+   Login
+========================= */
+export async function login(email, password) {
+  const response = await fetch("http://localhost:5000/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include", // ✅ REQUIRED
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Login failed");
+  }
+
+  return data;
+}
+
+/* =========================
+   Register
+========================= */
+export async function register(username, email, password) {
+  const response = await fetch("http://localhost:5000/api/auth/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({ username, email, password })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Registration failed");
+  }
+
+  return data;
+}
+
+/* =========================
+   Logout
+========================= */
+export async function logout() {
+  await fetch("http://localhost:5000/api/auth/logout", {
+    method: "POST",
+    credentials: "include"
+  });
 }

@@ -1,8 +1,8 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import {
   sendMessage,
   fetchConversationMessages,
-} from "../src//services/api";
+} from "../services/api";
 
 const ChatContext = createContext();
 
@@ -10,8 +10,19 @@ export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
   const [currentOptions, setCurrentOptions] = useState({});
+  const [selectedModel, setSelectedModel] = useState("local");
 
-  const userId = 1; // replace later with auth
+  /* =========================
+     LOAD MODEL FROM STORAGE
+  ========================= */
+  useEffect(() => {
+    const saved = localStorage.getItem("selectedModel");
+    if (saved) setSelectedModel(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("selectedModel", selectedModel);
+  }, [selectedModel]);
 
   /* =========================
      LOAD EXISTING CONVERSATION
@@ -37,46 +48,50 @@ export function ChatProvider({ children }) {
   /* =========================
      SEND MESSAGE
   ========================= */
-  const handleSend = async (userMessage, options) => {
-    let assistantIndex;
+const handleSend = async (userMessage, options = {}) => {
+  let assistantIndex;
 
-    setCurrentOptions(options);
-
-    // Add user + assistant placeholder
-    setMessages((prev) => {
-      const updated = [
-        ...prev,
-        { role: "user", content: userMessage },
-        { role: "assistant", content: "" },
-      ];
-      assistantIndex = updated.length - 1;
-      return updated;
-    });
-
-    await sendMessage(
-      userMessage,
-      options,
-      userId,
-      conversationId,
-      (chunk, returnedConversationId) => {
-        if (!conversationId && returnedConversationId) {
-          setConversationId(returnedConversationId);
-        }
-
-        setMessages((prev) => {
-          const updated = [...prev];
-
-          updated[assistantIndex] = {
-            ...updated[assistantIndex],
-            content:
-              (updated[assistantIndex].content || "") + chunk,
-          };
-
-          return updated;
-        });
-      }
-    );
+  // ✅ Always inject selected model
+  const finalOptions = {
+    ...options,
+    model: selectedModel,
   };
+
+  setCurrentOptions(finalOptions);
+
+  setMessages((prev) => {
+    const updated = [
+      ...prev,
+      { role: "user", content: userMessage },
+      { role: "assistant", content: "" },
+    ];
+    assistantIndex = updated.length - 1;
+    return updated;
+  });
+
+  await sendMessage(
+    userMessage,
+    finalOptions, // ✅ send model here
+    conversationId,
+    (chunk, returnedConversationId) => {
+      if (!conversationId && returnedConversationId) {
+        setConversationId(returnedConversationId);
+      }
+
+      setMessages((prev) => {
+        const updated = [...prev];
+
+        updated[assistantIndex] = {
+          ...updated[assistantIndex],
+          content:
+            (updated[assistantIndex].content || "") + chunk,
+        };
+
+        return updated;
+      });
+    }
+  );
+};
 
   /* =========================
      RETRY LAST MESSAGE
@@ -102,8 +117,7 @@ export function ChatProvider({ children }) {
 
     await sendMessage(
       previousMessage.content,
-      currentOptions, // ✅ real stored options
-      userId,
+      currentOptions,
       conversationId,
       (chunk) => {
         setMessages((prev) => {
@@ -126,6 +140,8 @@ export function ChatProvider({ children }) {
       value={{
         messages,
         conversationId,
+        selectedModel,          
+        setSelectedModel,       
         handleSend,
         loadConversation,
         newChat,

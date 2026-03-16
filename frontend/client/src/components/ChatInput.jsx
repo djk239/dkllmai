@@ -3,10 +3,13 @@ import { motion } from "framer-motion";
 import { SendHorizonal, Sparkles, Hash, ShieldCheck, FlaskConical, Loader2 } from "lucide-react";
 import ToggleButton from "./ToggleButton";
 import { improvePrompt } from "../services/api";
+import { useChat } from "../context/Context";
 
 export default function ChatInput({ onSend, loading }) {
   const [input, setInput] = useState("");
   const [improving, setImproving] = useState(false);
+
+  const {selectedModel } = useChat();
 
   const [options, setOptions] = useState({
     comments: false,
@@ -53,10 +56,9 @@ export default function ChatInput({ onSend, loading }) {
 
     setImproving(true);
     try {
-      const improved = await improvePrompt(input);
+      const improved = await improvePrompt(input, selectedModel );
       setInput(improved);
 
-      // Auto-resize textarea to fit improved prompt
       if (textareaRef.current) {
         setTimeout(() => {
           textareaRef.current.style.height = "auto";
