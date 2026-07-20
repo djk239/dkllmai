@@ -10,7 +10,7 @@ export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
   const [currentOptions, setCurrentOptions] = useState({});
-  const [selectedModel, setSelectedModel] = useState("local");
+  const [selectedModel, setSelectedModel] = useState("live");
 
   /* =========================
      LOAD MODEL FROM STORAGE
