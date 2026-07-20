@@ -1,4 +1,7 @@
-// src/services/api.js
+const API_URL = import.meta.env.DEV
+  ? "http://localhost:5000"
+  : "";
+
 
 /* =========================
    SEND MESSAGE (STREAMING)
@@ -10,7 +13,7 @@ export async function sendMessage(
   onChunk = () => {}
 ) {
   try {
-    const response = await fetch("http://localhost:5000/api/ai/chat", {
+    const response = await fetch(`${API_URL}/api/ai/chat`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -33,6 +36,7 @@ export async function sendMessage(
 
     while (true) {
       const { value, done } = await reader.read();
+
       if (done) break;
 
       if (value) {
@@ -40,11 +44,13 @@ export async function sendMessage(
         onChunk(chunk, returnedConversationId);
       }
     }
+
   } catch (err) {
     console.error("Error sending message:", err);
     onChunk("\n[Error communicating with server]");
   }
 }
+
 
 /* =========================
    IMPROVE PROMPT
@@ -52,16 +58,16 @@ export async function sendMessage(
 export async function improvePrompt(prompt, model) {
   try {
     const response = await fetch(
-      "http://localhost:5000/api/ai/improve-prompt",
+      `${API_URL}/api/ai/improve-prompt`,
       {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           prompt,
-          model, 
+          model,
         }),
       }
     );
@@ -72,18 +78,20 @@ export async function improvePrompt(prompt, model) {
 
     const data = await response.json();
     return data.improved;
+
   } catch (err) {
     console.error("Error improving prompt:", err);
     return prompt;
   }
 }
 
+
 /* =========================
    FETCH ONE CONVERSATION
 ========================= */
 export async function fetchConversationMessages(conversationId) {
   const res = await fetch(
-    `http://localhost:5000/api/ai/conversations/${conversationId}/messages`,
+    `${API_URL}/api/ai/conversations/${conversationId}/messages`,
     {
       credentials: "include",
     }
@@ -96,12 +104,13 @@ export async function fetchConversationMessages(conversationId) {
   return res.json();
 }
 
+
 /* =========================
    FETCH ALL CONVERSATIONS
 ========================= */
 export async function fetchConversations(page = 1) {
   const res = await fetch(
-    `http://localhost:5000/api/ai/conversations?page=${page}&limit=10`,
+    `${API_URL}/api/ai/conversations?page=${page}&limit=10`,
     {
       credentials: "include",
     }
@@ -114,18 +123,25 @@ export async function fetchConversations(page = 1) {
   return res.json();
 }
 
+
 /* =========================
    Login
 ========================= */
 export async function login(email, password) {
-  const response = await fetch("http://localhost:5000/api/auth/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    credentials: "include", // ✅ REQUIRED
-    body: JSON.stringify({ email, password })
-  });
+  const response = await fetch(
+    `${API_URL}/api/auth/login`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    }
+  );
 
   const data = await response.json();
 
@@ -136,18 +152,26 @@ export async function login(email, password) {
   return data;
 }
 
+
 /* =========================
    Register
 ========================= */
 export async function register(username, email, password) {
-  const response = await fetch("http://localhost:5000/api/auth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    credentials: "include",
-    body: JSON.stringify({ username, email, password })
-  });
+  const response = await fetch(
+    `${API_URL}/api/auth/register`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+      }),
+    }
+  );
 
   const data = await response.json();
 
@@ -158,12 +182,16 @@ export async function register(username, email, password) {
   return data;
 }
 
+
 /* =========================
    Logout
 ========================= */
 export async function logout() {
-  await fetch("http://localhost:5000/api/auth/logout", {
-    method: "POST",
-    credentials: "include"
-  });
+  await fetch(
+    `${API_URL}/api/auth/logout`,
+    {
+      method: "POST",
+      credentials: "include",
+    }
+  );
 }
