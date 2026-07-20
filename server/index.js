@@ -31,7 +31,7 @@ app.use('/api/ai', aiRouter);
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/client/dist")));
 
-  app.use("*", (req, res) => {
+  app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/client/dist/index.html"));
   });
 }
